@@ -1,6 +1,6 @@
 # Peta Pelanggan Kurir
 
-Aplikasi web untuk penandaan lokasi pelanggan rider di wilayah Tigaraksa Hub 2 dengan akurasi tinggi. Memungkinkan rider untuk menandai, mengelola, dan menganalisis lokasi pelanggan secara efisien.
+Aplikasi web untuk penandaan lokasi pelanggan kurir di wilayah Tigaraksa Hub 2 dengan akurasi tinggi. Memungkinkan rider untuk menandai, mengelola, dan menganalisis lokasi pelanggan secara efisien.
 
 [Tampilan Desktop](GorideExcellVersion.PNG)
 [Tampilan Mobile](GorideExcellVersionMobile.PNG)
