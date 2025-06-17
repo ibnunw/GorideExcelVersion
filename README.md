@@ -1,4 +1,4 @@
-# Peta Pelanggan Rider - Tigaraksa Hub 2
+# Peta Pelanggan Kurir
 
 Aplikasi web untuk penandaan lokasi pelanggan rider di wilayah Tigaraksa Hub 2 dengan akurasi tinggi. Memungkinkan rider untuk menandai, mengelola, dan menganalisis lokasi pelanggan secara efisien.
 
