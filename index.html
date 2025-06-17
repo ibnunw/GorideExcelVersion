@@ -1,0 +1,1911 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Peta Pelanggan Rider - Tigaraksa Hub 2</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1e5799, #207cca, #2989d8);
+            color: #333;
+            min-height: 100vh;
+            padding: 10px;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            height: calc(100vh - 20px);
+        }
+        
+        header {
+            background: rgba(255, 255, 255, 0.97);
+            border-radius: 15px;
+            padding: 12px 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-left: 5px solid #ff5500;
+        }
+        
+        .logo {
+            background: linear-gradient(135deg, #ff8c00, #ff5500);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+            box-shadow: 0 3px 6px rgba(255, 85, 0, 0.3);
+            flex-shrink: 0;
+        }
+        
+        .header-text {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .header-text h1 {
+            color: #ff5500;
+            margin-bottom: 4px;
+            font-size: 1.4rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .header-text p {
+            color: #555;
+            font-size: 0.95rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .header-stats {
+            display: flex;
+            gap: 15px;
+            background: #f8f9fa;
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin-top: 6px;
+            overflow-x: auto;
+        }
+        
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 70px;
+        }
+        
+        .stat-value {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #ff5500;
+        }
+        
+        .stat-label {
+            font-size: 0.8rem;
+            color: #6c757d;
+            text-align: center;
+        }
+        
+        .main-content {
+            display: flex;
+            flex: 1;
+            gap: 15px;
+            height: 100%;
+            flex-direction: column;
+        }
+        
+        .map-container {
+            flex: 1;
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            min-height: 300px;
+        }
+        
+        .map-header {
+            padding: 12px 15px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .map-header h2 {
+            color: #ff5500;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+        
+        #map {
+            width: 100%;
+            flex: 1;
+            cursor: crosshair;
+            z-index: 1;
+        }
+        
+        .sidebar {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.97);
+            border-radius: 15px;
+            padding: 15px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            overflow-y: auto;
+            max-height: 100%;
+        }
+        
+        .panel {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+            border-left: 3px solid #ff5500;
+        }
+        
+        .panel h2 {
+            color: #ff5500;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1.2rem;
+        }
+        
+        .panel h2 i {
+            font-size: 1.1em;
+        }
+        
+        .form-group {
+            margin-bottom: 12px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 4px;
+            font-weight: 500;
+            color: #555;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.95rem;
+        }
+        
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+        }
+        
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+            border-color: #ff5500;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(255, 85, 0, 0.2);
+        }
+        
+        .form-group textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #ff8c00, #ff5500);
+            color: white;
+            border: none;
+            padding: 12px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            box-shadow: 0 3px 5px rgba(255, 85, 0, 0.2);
+            width: 100%;
+            margin-top: 5px;
+        }
+        
+        .btn:hover {
+            background: linear-gradient(135deg, #ff5500, #ff3300);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(255, 85, 0, 0.3);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .btn-small {
+            padding: 7px 12px;
+            font-size: 0.85rem;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .btn-group .btn {
+            flex: 1;
+            min-width: 120px;
+        }
+        
+        .marker-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+        
+        .marker-item {
+            background: white;
+            border-left: 4px solid #ff5500;
+            border-radius: 8px;
+            padding: 12px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        
+        .marker-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .marker-item h3 {
+            color: #ff5500;
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1rem;
+        }
+        
+        .marker-item p {
+            color: #666;
+            font-size: 0.85rem;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: flex-start;
+            gap: 6px;
+            line-height: 1.4;
+        }
+        
+        .marker-item p i {
+            margin-top: 2px;
+            min-width: 14px;
+        }
+        
+        .marker-actions {
+            display: flex;
+            gap: 6px;
+            margin-top: 8px;
+        }
+        
+        .marker-actions button {
+            padding: 6px 10px;
+            font-size: 0.8rem;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-weight: 500;
+            transition: all 0.2s;
+            flex: 1;
+        }
+        
+        .marker-actions .btn-view {
+            background: #e9ecef;
+            color: #495057;
+        }
+        
+        .marker-actions .btn-view:hover {
+            background: #dde0e3;
+        }
+        
+        .marker-actions .btn-delete {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .marker-actions .btn-delete:hover {
+            background: #c82333;
+        }
+        
+        .instructions {
+            background: #e9f7fe;
+            border-left: 4px solid #1e90ff;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+        
+        .instructions h3 {
+            color: #1e90ff;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 1rem;
+        }
+        
+        .instructions ol {
+            padding-left: 18px;
+        }
+        
+        .instructions li {
+            margin-bottom: 8px;
+            color: #555;
+            line-height: 1.5;
+            font-size: 0.9rem;
+        }
+        
+        .instructions li strong {
+            color: #1e90ff;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            left: 15px;
+            padding: 12px 20px;
+            background: #4CAF50;
+            color: white;
+            border-radius: 8px;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            transform: translateY(-100px);
+            transition: transform 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 500;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        
+        .notification.show {
+            transform: translateY(0);
+        }
+        
+        .notification.error {
+            background: #dc3545;
+        }
+        
+        .legend {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 10px 12px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            border: 1px solid #eee;
+            max-width: 200px;
+        }
+        
+        .legend h3 {
+            margin-bottom: 8px;
+            color: #333;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 6px;
+            gap: 6px;
+            font-size: 0.8rem;
+        }
+        
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 0 4px rgba(0,0,0,0.3);
+            flex-shrink: 0;
+        }
+        
+        .legend-home { background-color: #ff5500; }
+        .legend-office { background-color: #1e90ff; }
+        .legend-shop { background-color: #32CD32; }
+        .legend-temporary { background-color: #ff00ff; }
+        .legend-hub { background-color: #9c27b0; }
+        
+        .position-info {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 10px 12px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            font-size: 0.85rem;
+            border: 1px solid #eee;
+            max-width: 250px;
+        }
+        
+        .position-info p {
+            margin-bottom: 4px;
+            display: flex;
+            gap: 4px;
+            align-items: center;
+            font-size: 0.85rem;
+        }
+        
+        .position-info strong {
+            min-width: 60px;
+            display: inline-block;
+            font-size: 0.85rem;
+        }
+        
+        .search-box {
+            position: absolute;
+            top: 70px;
+            right: 15px;
+            left: 15px;
+            z-index: 1000;
+        }
+        
+        .search-box input {
+            width: 100%;
+            padding: 10px 15px 10px 40px;
+            border-radius: 30px;
+            border: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            font-size: 0.95rem;
+        }
+        
+        .search-box i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #777;
+        }
+        
+        .accuracy-tip {
+            position: absolute;
+            bottom: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 30px;
+            z-index: 1000;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            animation: pulse 2s infinite;
+            text-align: center;
+            max-width: 90%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 0.8; }
+            50% { opacity: 1; }
+            100% { opacity: 0.8; }
+        }
+        
+        .area-info {
+            position: absolute;
+            top: 115px;
+            right: 15px;
+            left: 15px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 10px 12px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            font-size: 0.85rem;
+            border: 1px solid #eee;
+            display: none;
+        }
+        
+        .area-info h4 {
+            color: #ff5500;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.95rem;
+        }
+        
+        .area-info ul {
+            padding-left: 18px;
+            color: #555;
+            font-size: 0.85rem;
+        }
+        
+        .area-info li {
+            margin-bottom: 4px;
+        }
+        
+        .fullscreen-toggle {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            z-index: 1000;
+            background: white;
+            padding: 8px 12px;
+            border-radius: 30px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+        
+        .zoom-controls {
+            position: absolute;
+            bottom: 15px;
+            left: 15px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .zoom-btn {
+            width: 36px;
+            height: 36px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+        
+        .info-toggle {
+            position: absolute;
+            bottom: 15px;
+            right: 60px;
+            z-index: 1000;
+            background: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            font-size: 1.1rem;
+        }
+        
+        /* Modal untuk import/export */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 15px;
+        }
+        
+        .modal-header h2 {
+            color: #ff5500;
+            font-size: 1.4rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #777;
+            transition: all 0.3s;
+        }
+        
+        .close-modal:hover {
+            color: #ff5500;
+            transform: rotate(90deg);
+        }
+        
+        .modal-body {
+            margin-bottom: 20px;
+        }
+        
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        
+        .file-input-container {
+            position: relative;
+            margin-bottom: 15px;
+        }
+        
+        .file-input-label {
+            display: block;
+            padding: 15px;
+            background: #f8f9fa;
+            border: 2px dashed #ddd;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .file-input-label:hover {
+            border-color: #ff5500;
+            background: #fff7f4;
+        }
+        
+        .file-input-label i {
+            font-size: 2rem;
+            color: #ff5500;
+            margin-bottom: 10px;
+            display: block;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .file-name {
+            margin-top: 10px;
+            font-size: 0.9rem;
+            color: #666;
+            text-align: center;
+        }
+        
+        .export-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .export-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .export-option:hover {
+            background: #e9ecef;
+        }
+        
+        .export-option i {
+            font-size: 1.2rem;
+            color: #ff5500;
+        }
+        
+        .export-info {
+            flex: 1;
+        }
+        
+        .export-info h3 {
+            font-size: 1rem;
+            color: #333;
+            margin-bottom: 3px;
+        }
+        
+        .export-info p {
+            font-size: 0.85rem;
+            color: #777;
+        }
+        
+        /* Desktop Layout */
+        @media (min-width: 768px) {
+            .container {
+                padding: 15px;
+                gap: 20px;
+                height: calc(100vh - 30px);
+            }
+            
+            header {
+                padding: 15px 25px;
+            }
+            
+            .logo {
+                width: 60px;
+                height: 60px;
+                font-size: 24px;
+            }
+            
+            .header-text h1 {
+                font-size: 1.6rem;
+            }
+            
+            .header-text p {
+                font-size: 1rem;
+            }
+            
+            .header-stats {
+                gap: 20px;
+                padding: 10px 15px;
+            }
+            
+            .main-content {
+                flex-direction: row;
+                gap: 20px;
+            }
+            
+            .map-container {
+                flex: 5;
+            }
+            
+            .sidebar {
+                flex: 2;
+                padding: 20px;
+            }
+            
+            .search-box {
+                top: 80px;
+                right: 20px;
+                left: auto;
+                width: 300px;
+            }
+            
+            .area-info {
+                top: 20px;
+                right: 20px;
+                left: auto;
+                max-width: 300px;
+                display: block;
+            }
+            
+            .accuracy-tip {
+                bottom: 80px;
+            }
+            
+            .fullscreen-toggle {
+                top: 20px;
+                right: 20px;
+            }
+            
+            .zoom-controls {
+                bottom: 20px;
+                left: 20px;
+            }
+            
+            .info-toggle {
+                display: none;
+            }
+            
+            .btn-group .btn {
+                width: auto;
+            }
+        }
+        
+        @media (min-width: 992px) {
+            .header-text h1 {
+                font-size: 1.8rem;
+            }
+        }
+        
+        /* Mobile specific adjustments */
+        @media (max-width: 767px) {
+            .map-header h2 {
+                font-size: 1.1rem;
+            }
+            
+            .panel h2 {
+                font-size: 1.1rem;
+            }
+            
+            .btn {
+                padding: 10px 14px;
+                font-size: 0.9rem;
+            }
+            
+            .marker-item h3 {
+                flex-wrap: wrap;
+            }
+            
+            .position-info {
+                top: 60px;
+                max-width: calc(100% - 30px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">RP</div>
+            <div class="header-text">
+                <h1><i class="fas fa-map-marked-alt"></i> Peta Pelanggan Rider</h1>
+                <p>Tigaraksa Hub 2 - Penandaan Lokasi Akurat</p>
+                
+                <div class="header-stats">
+                    <div class="stat-item">
+                        <span class="stat-value" id="total-customers">0</span>
+                        <span class="stat-label">Pelanggan</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value" id="in-area">0</span>
+                        <span class="stat-label">Dalam Kawasan</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value" id="out-area">0</span>
+                        <span class="stat-label">Luar Kawasan</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+        
+        <div class="main-content">
+            <div class="map-container">
+                <div class="map-header">
+                    <h2><i class="fas fa-location-dot"></i> Peta Tigaraksa Hub 2</h2>
+                    <div>
+                        <button id="clear-all-markers" class="btn btn-small btn-secondary">
+                            <i class="fas fa-trash"></i> Hapus Semua
+                        </button>
+                    </div>
+                </div>
+                <div id="map"></div>
+                
+                <div class="position-info">
+                    <p><strong><i class="fas fa-info-circle"></i> Status:</strong> <span id="position-status">Klik di peta</span></p>
+                    <p><strong><i class="fas fa-latitude"></i> Lat:</strong> <span id="position-lat">-</span></p>
+                    <p><strong><i class="fas fa-longitude"></i> Lng:</strong> <span id="position-lng">-</span></p>
+                </div>
+                
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="address-search" placeholder="Cari alamat atau tempat...">
+                </div>
+                
+                <div class="fullscreen-toggle" id="fullscreen-toggle">
+                    <i class="fas fa-expand"></i> Layar Penuh
+                </div>
+                
+                <div class="zoom-controls">
+                    <div class="zoom-btn" id="zoom-in">
+                        <i class="fas fa-plus"></i>
+                    </div>
+                    <div class="zoom-btn" id="zoom-out">
+                        <i class="fas fa-minus"></i>
+                    </div>
+                </div>
+                
+                <div class="info-toggle" id="info-toggle">
+                    <i class="fas fa-info"></i>
+                </div>
+                
+                <div class="area-info" id="area-info">
+                    <h4><i class="fas fa-lightbulb"></i> Informasi Area</h4>
+                    <ul>
+                        <li>Lingkaran oranye: Kawasan Tigaraksa Hub 2</li>
+                        <li>Marker ungu: Titik yang dipilih/drag</li>
+                        <li>Marker warna: Lokasi pelanggan</li>
+                        <li>Zoom in untuk akurasi lebih tinggi</li>
+                    </ul>
+                </div>
+                
+                <div class="accuracy-tip">
+                    <i class="fas fa-hand-point-up"></i> Klik di peta, lalu drag marker untuk akurasi maksimal!
+                </div>
+                
+                <div class="legend">
+                    <h3><i class="fas fa-key"></i> Keterangan:</h3>
+                    <div class="legend-item">
+                        <div class="legend-color legend-home"></div>
+                        <span>Rumah</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color legend-office"></div>
+                        <span>Kantor</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color legend-shop"></div>
+                        <span>Toko/Usaha</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="sidebar">
+                <div class="panel">
+                    <h2><i class="fas fa-map-marker-alt"></i> Tambah Penanda</h2>
+                    
+                    <div class="form-group">
+                        <label for="marker-name"><i class="fas fa-user"></i> Nama Pelanggan</label>
+                        <input type="text" id="marker-name" placeholder="Contoh: Bapak Budi">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="marker-address"><i class="fas fa-location-dot"></i> Alamat Lengkap</label>
+                        <textarea id="marker-address" placeholder="Jl. Mawar No. 10, dekat warung Pak Ali"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="marker-type"><i class="fas fa-tag"></i> Jenis Lokasi</label>
+                        <select id="marker-type">
+                            <option value="home">Rumah</option>
+                            <option value="office">Kantor</option>
+                            <option value="shop">Toko/Usaha</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="marker-note"><i class="fas fa-clipboard"></i> Catatan Penting</label>
+                        <textarea id="marker-note" placeholder="Pagar warna hijau, pakai bel listrik"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label><i class="fas fa-crosshairs"></i> Lokasi yang Dipilih</label>
+                        <div style="background: #f8f9fa; padding: 10px; border-radius: 8px; font-size: 0.9rem;">
+                            <div id="selected-location">Belum memilih lokasi</div>
+                            <div id="location-area" style="margin-top: 6px; font-weight: 500; font-size: 0.9rem;"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="btn-group">
+                        <button id="add-marker-btn" class="btn"><i class="fas fa-plus"></i> Tambah Penanda</button>
+                        <button id="clear-form-btn" class="btn btn-secondary"><i class="fas fa-undo"></i> Reset</button>
+                    </div>
+                </div>
+                
+                <div class="panel">
+                    <h2><i class="fas fa-list"></i> Daftar Pelanggan (<span id="marker-count">0</span>)</h2>
+                    <div id="marker-list" class="marker-list">
+                        <p style="text-align: center; color: #777; padding: 15px;">
+                            <i class="fas fa-inbox"></i><br>
+                            Belum ada pelanggan ditambahkan
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- Tambahkan panel baru untuk import/export -->
+                <div class="panel">
+                    <h2><i class="fas fa-database"></i> Kelola Data</h2>
+                    <div class="btn-group">
+                        <button id="export-btn" class="btn">
+                            <i class="fas fa-file-export"></i> Export Data
+                        </button>
+                        <button id="import-btn" class="btn btn-secondary">
+                            <i class="fas fa-file-import"></i> Import Data
+                        </button>
+                    </div>
+                    
+                    <div class="instructions" style="margin-top: 15px;">
+                        <h3><i class="fas fa-info-circle"></i> Petunjuk Backup:</h3>
+                        <ol>
+                            <li><strong>Export data</strong> secara berkala untuk cadangan</li>
+                            <li>File disimpan dalam format <strong>Excel (.xlsx)</strong></li>
+                            <li>Simpan file di tempat aman</li>
+                            <li>Data akan hilang jika cache browser dibersihkan</li>
+                        </ol>
+                    </div>
+                </div>
+                
+                <div class="instructions">
+                    <h3><i class="fas fa-graduation-cap"></i> Petunjuk Akurasi:</h3>
+                    <ol>
+                        <li><strong>Klik pada peta</strong> di area dekat lokasi pelanggan</li>
+                        <li><strong>Drag marker ungu</strong> untuk penempatan presisi</li>
+                        <li>Gunakan <strong>zoom maksimal</strong> untuk akurasi tinggi</li>
+                        <li>Data tersimpan otomatis di browser Anda</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal untuk import/export -->
+    <div class="modal" id="data-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-database"></i> <span id="modal-title">Kelola Data</span></h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            
+            <div class="modal-body">
+                <!-- Konten akan diisi secara dinamis -->
+            </div>
+            
+            <div class="modal-footer">
+                <button id="cancel-btn" class="btn btn-secondary">Batal</button>
+                <button id="action-btn" class="btn">Proses</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="notification" id="notification">
+        <i class="fas fa-check-circle"></i>
+        <span>Penanda berhasil ditambahkan!</span>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // Inisialisasi peta dengan fokus di Tigaraksa
+        const map = L.map('map').setView([-6.2537, 106.4764], 15);
+        
+        // Tambahkan layer peta
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+        
+        // Definisikan area Tigaraksa Hub 2
+        const hubArea = L.circle([-6.2537, 106.4764], {
+            color: '#ff5500',
+            fillColor: '#ff8c00',
+            fillOpacity: 0.1,
+            radius: 1500
+        }).addTo(map);
+        
+        // Tambahkan marker untuk Tigaraksa Hub 2
+        const hubMarker = L.marker([-6.2537, 106.4764], {
+            icon: L.divIcon({
+                className: 'hub-icon',
+                html: '<div style="background-color: #9c27b0; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 14px; border: 3px solid white; box-shadow: 0 0 8px rgba(0,0,0,0.6);"><i class="fas fa-warehouse"></i></div>',
+                iconSize: [28, 28],
+                iconAnchor: [14, 14]
+            })
+        }).addTo(map);
+        
+        hubMarker.bindPopup(`
+            <div style="text-align:center; min-width: 200px;">
+                <b><i class="fas fa-warehouse"></i> Tigaraksa Hub 2</b><br>
+                <small>Lokasi pengiriman Anda</small>
+            </div>
+        `).openPopup();
+        
+        // Simpan marker dalam array
+        let markers = [];
+        let temporaryMarker = null;
+        let selectedLocation = null;
+        
+        // Fungsi untuk mengecek apakah lokasi berada dalam area
+        function isInHubArea(lat, lng) {
+            const hubCenter = hubArea.getLatLng();
+            const distance = hubCenter.distanceTo([lat, lng]);
+            return distance <= hubArea.getRadius();
+        }
+        
+        // Fungsi untuk memperbarui statistik
+        function updateStats() {
+            const total = markers.length;
+            const inArea = markers.filter(marker => isInHubArea(marker.lat, marker.lng)).length;
+            const outArea = total - inArea;
+            
+            document.getElementById('total-customers').textContent = total;
+            document.getElementById('in-area').textContent = inArea;
+            document.getElementById('out-area').textContent = outArea;
+            document.getElementById('marker-count').textContent = total;
+            
+            console.log('Statistik diperbarui:', {total, inArea, outArea});
+        }
+        
+        // Coba muat marker dari localStorage
+        function loadMarkers() {
+            const savedMarkers = localStorage.getItem('customerMarkers');
+            if (savedMarkers) {
+                try {
+                    const parsedMarkers = JSON.parse(savedMarkers);
+                    
+                    // Pastikan data yang dimuat adalah array
+                    if (!Array.isArray(parsedMarkers)) {
+                        throw new Error('Format data tidak valid');
+                    }
+                    
+                    markers = parsedMarkers;
+                    renderMarkerList();
+                    placeMarkersOnMap();
+                    updateStats();
+                } catch (e) {
+                    console.error('Error loading markers:', e);
+                    showNotification('Error memuat data. Silakan import ulang.', true);
+                    markers = [];
+                }
+            }
+        }
+        
+        // Simpan marker ke localStorage
+        function saveMarkers() {
+            try {
+                // Simpan tanpa properti mapMarker
+                const markersToSave = markers.map(marker => {
+                    const { mapMarker, ...rest } = marker;
+                    return rest;
+                });
+                
+                localStorage.setItem('customerMarkers', JSON.stringify(markersToSave));
+                updateStats();
+                console.log('Markers disimpan:', markersToSave.length);
+            } catch (e) {
+                console.error('Error saving markers:', e);
+                if (e.name === 'QuotaExceededError') {
+                    showNotification('Penyimpanan penuh! Silakan hapus beberapa data.', true);
+                }
+            }
+        }
+        
+        // Tampilkan marker di peta
+        function placeMarkersOnMap() {
+            // Hapus semua marker yang ada dari peta
+            markers.forEach(marker => {
+                if (marker.mapMarker) {
+                    map.removeLayer(marker.mapMarker);
+                    marker.mapMarker = null;
+                }
+            });
+            
+            // Tambahkan marker baru ke peta
+            markers.forEach(marker => {
+                let iconColor;
+                switch(marker.type) {
+                    case 'home': iconColor = '#ff5500'; break;
+                    case 'office': iconColor = '#1e90ff'; break;
+                    case 'shop': iconColor = '#32CD32'; break;
+                    default: iconColor = '#ff5500';
+                }
+                
+                const customIcon = L.divIcon({
+                    className: 'custom-icon',
+                    html: `
+                        <div style="
+                            background-color: ${iconColor}; 
+                            width: 26px; 
+                            height: 26px; 
+                            border-radius: 50%; 
+                            display: flex; 
+                            align-items: center; 
+                            justify-content: center; 
+                            color: white; 
+                            font-size: 12px; 
+                            font-weight: bold;
+                            border: 2px solid white; 
+                            box-shadow: 0 0 6px rgba(0,0,0,0.5);
+                        ">
+                            ${marker.name.charAt(0)}
+                        </div>
+                    `,
+                    iconSize: [26, 26],
+                    iconAnchor: [13, 13]
+                });
+                
+                marker.mapMarker = L.marker([marker.lat, marker.lng], {
+                    icon: customIcon,
+                    draggable: true
+                })
+                .addTo(map)
+                .bindPopup(`
+                    <div style="min-width: 200px;">
+                        <b>${marker.name}</b>
+                        <div style="margin: 5px 0; padding: 5px 0; border-top: 1px solid #eee; border-bottom: 1px solid #eee; font-size: 0.9rem;">
+                            <div><i class="fas fa-map-marker-alt"></i> ${marker.address || 'Alamat tidak tersedia'}</div>
+                            <div style="margin-top: 3px;"><i class="fas fa-sticky-note"></i> ${marker.note || 'Tidak ada catatan'}</div>
+                        </div>
+                        <div><i class="fas fa-map"></i> ${isInHubArea(marker.lat, marker.lng) ? 'Dalam Kawasan Hub 2' : 'Luar Kawasan Hub 2'}</div>
+                    </div>
+                `);
+                
+                // Tambahkan event untuk mengupdate lokasi saat marker digeser
+                marker.mapMarker.on('dragend', function(event) {
+                    const markerObj = event.target;
+                    const position = markerObj.getLatLng();
+                    
+                    // Update lokasi di penyimpanan
+                    const index = markers.findIndex(m => m.mapMarker === markerObj);
+                    if (index !== -1) {
+                        markers[index].lat = position.lat;
+                        markers[index].lng = position.lng;
+                        saveMarkers();
+                        renderMarkerList(); // Perbarui daftar setelah perubahan lokasi
+                        showNotification('Lokasi pelanggan diperbarui!');
+                    }
+                });
+            });
+        }
+        
+        // Tampilkan daftar marker di panel
+        function renderMarkerList() {
+            const markerList = document.getElementById('marker-list');
+            
+            if (markers.length === 0) {
+                markerList.innerHTML = '<p style="text-align: center; color: #777; padding: 15px;"><i class="fas fa-inbox"></i><br>Belum ada pelanggan ditambahkan</p>';
+                return;
+            }
+            
+            markerList.innerHTML = '';
+            
+            markers.forEach((marker, index) => {
+                let iconClass, typeText;
+                switch(marker.type) {
+                    case 'home': 
+                        iconClass = 'fas fa-home'; 
+                        typeText = 'Rumah';
+                        break;
+                    case 'office': 
+                        iconClass = 'fas fa-building'; 
+                        typeText = 'Kantor';
+                        break;
+                    case 'shop': 
+                        iconClass = 'fas fa-store'; 
+                        typeText = 'Toko/Usaha';
+                        break;
+                    default: 
+                        iconClass = 'fas fa-map-marker-alt';
+                        typeText = 'Lokasi';
+                }
+                
+                const inArea = isInHubArea(marker.lat, marker.lng);
+                
+                const markerElement = document.createElement('div');
+                markerElement.className = 'marker-item';
+                markerElement.innerHTML = `
+                    <h3>
+                        <span><i class="${iconClass}"></i> ${marker.name}</span>
+                        <span style="font-size: 0.75rem; background: ${inArea ? '#e7f4e4' : '#f8e0e0'}; color: ${inArea ? '#2e7d32' : '#c62828'}; padding: 2px 6px; border-radius: 8px;">
+                            <i class="fas fa-${inArea ? 'check-circle' : 'exclamation-triangle'}"></i> ${inArea ? 'Dalam Kawasan' : 'Luar Kawasan'}
+                        </span>
+                    </h3>
+                    <p><i class="fas fa-map-marker-alt"></i> ${marker.address || 'Alamat tidak tersedia'}</p>
+                    <p><i class="fas fa-clipboard"></i> ${marker.note || 'Tidak ada catatan'}</p>
+                    <div class="marker-actions">
+                        <button class="btn-view" onclick="viewMarker(${index})">
+                            <i class="fas fa-eye"></i> Lihat
+                        </button>
+                        <button class="btn-delete" onclick="deleteMarker(${index})">
+                            <i class="fas fa-trash"></i> Hapus
+                        </button>
+                    </div>
+                `;
+                markerList.appendChild(markerElement);
+            });
+        }
+        
+        // Tampilkan notifikasi
+        function showNotification(message, isError = false) {
+            const notification = document.getElementById('notification');
+            notification.innerHTML = `<i class="fas fa-${isError ? 'exclamation-triangle' : 'check-circle'}"></i> <span>${message}</span>`;
+            
+            if (isError) {
+                notification.classList.add('error');
+            } else {
+                notification.classList.remove('error');
+            }
+            
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+        
+        // Fungsi untuk melihat marker di peta
+        window.viewMarker = function(index) {
+            const marker = markers[index];
+            map.setView([marker.lat, marker.lng], 18);
+            
+            if (marker.mapMarker) {
+                marker.mapMarker.openPopup();
+            }
+        };
+        
+        // Fungsi untuk menghapus marker
+        window.deleteMarker = function(index) {
+            if (confirm('Apakah Anda yakin ingin menghapus penanda ini?')) {
+                const deletedMarker = markers.splice(index, 1)[0];
+                if (deletedMarker.mapMarker) {
+                    map.removeLayer(deletedMarker.mapMarker);
+                }
+                saveMarkers();
+                renderMarkerList();
+                showNotification('Penanda berhasil dihapus!');
+            }
+        };
+        
+        // Event listener untuk peta - pemilihan lokasi
+        map.on('click', function(e) {
+            // Hapus marker sementara sebelumnya
+            if (temporaryMarker) {
+                map.removeLayer(temporaryMarker);
+            }
+            
+            // Tambahkan marker sementara yang bisa digeser
+            temporaryMarker = L.marker(e.latlng, {
+                icon: L.divIcon({
+                    className: 'temporary-marker',
+                    html: '<div style="background-color: #ff00ff; width: 24px; height: 24px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 8px rgba(0,0,0,0.7);"></div>',
+                    iconSize: [24, 24],
+                    iconAnchor: [12, 12]
+                }),
+                draggable: true,
+                zIndexOffset: 1000
+            }).addTo(map);
+            
+            // Simpan lokasi yang dipilih
+            selectedLocation = e.latlng;
+            
+            // Update info lokasi
+            updateLocationInfo(selectedLocation);
+            
+            // Event saat marker digeser
+            temporaryMarker.on('dragend', function(event) {
+                const marker = event.target;
+                const position = marker.getLatLng();
+                selectedLocation = position;
+                updateLocationInfo(position);
+            });
+        });
+        
+        // Fungsi untuk memperbarui informasi lokasi
+        function updateLocationInfo(position) {
+            const inArea = isInHubArea(position.lat, position.lng);
+            
+            document.getElementById('selected-location').innerHTML = `
+                <div><strong>Lat:</strong> ${position.lat.toFixed(6)}</div>
+                <div><strong>Lng:</strong> ${position.lng.toFixed(6)}</div>
+            `;
+            
+            document.getElementById('location-area').innerHTML = `
+                <span style="color: ${inArea ? '#2e7d32' : '#c62828'};">
+                    <i class="fas fa-${inArea ? 'check-circle' : 'exclamation-triangle'}"></i>
+                    ${inArea ? 'Dalam Kawasan Tigaraksa Hub 2' : 'Luar Kawasan Tigaraksa Hub 2'}
+                </span>
+            `;
+            
+            // Update position info
+            document.getElementById('position-lat').textContent = position.lat.toFixed(6);
+            document.getElementById('position-lng').textContent = position.lng.toFixed(6);
+            document.getElementById('position-status').textContent = 'Lokasi dipilih';
+            document.getElementById('position-status').style.color = '#28a745';
+        }
+        
+        // Event listener untuk tombol tambah marker
+        document.getElementById('add-marker-btn').addEventListener('click', function() {
+            const name = document.getElementById('marker-name').value.trim();
+            const address = document.getElementById('marker-address').value.trim();
+            const type = document.getElementById('marker-type').value;
+            const note = document.getElementById('marker-note').value.trim();
+            
+            if (!name) {
+                showNotification('Silakan masukkan nama pelanggan', true);
+                return;
+            }
+            
+            if (!selectedLocation) {
+                showNotification('Silakan pilih lokasi di peta terlebih dahulu', true);
+                return;
+            }
+            
+            // Simpan marker ke array
+            markers.push({
+                id: Date.now(),
+                name: name,
+                address: address,
+                type: type,
+                note: note,
+                lat: selectedLocation.lat,
+                lng: selectedLocation.lng,
+                date: new Date().toLocaleString()
+            });
+            
+            // Simpan ke localStorage
+            saveMarkers();
+            
+            // Perbarui peta dan daftar
+            placeMarkersOnMap();
+            renderMarkerList();
+            
+            // Reset form
+            document.getElementById('marker-name').value = '';
+            document.getElementById('marker-address').value = '';
+            document.getElementById('marker-type').value = 'home';
+            document.getElementById('marker-note').value = '';
+            
+            // Hapus marker sementara
+            if (temporaryMarker) {
+                map.removeLayer(temporaryMarker);
+                temporaryMarker = null;
+            }
+            
+            // Reset lokasi yang dipilih
+            selectedLocation = null;
+            document.getElementById('selected-location').innerHTML = 'Belum memilih lokasi';
+            document.getElementById('location-area').innerHTML = '';
+            
+            // Tampilkan notifikasi
+            showNotification('Penanda berhasil ditambahkan!');
+            
+            // Update position info
+            document.getElementById('position-status').textContent = 'Klik di peta untuk memilih lokasi';
+            document.getElementById('position-status').style.color = '';
+            document.getElementById('position-lat').textContent = '-';
+            document.getElementById('position-lng').textContent = '-';
+        });
+        
+        // Event listener untuk tombol reset form
+        document.getElementById('clear-form-btn').addEventListener('click', function() {
+            document.getElementById('marker-name').value = '';
+            document.getElementById('marker-address').value = '';
+            document.getElementById('marker-type').value = 'home';
+            document.getElementById('marker-note').value = '';
+            
+            if (temporaryMarker) {
+                map.removeLayer(temporaryMarker);
+                temporaryMarker = null;
+            }
+            
+            selectedLocation = null;
+            document.getElementById('selected-location').innerHTML = 'Belum memilih lokasi';
+            document.getElementById('location-area').innerHTML = '';
+            
+            showNotification('Form telah direset!');
+        });
+        
+        // Event listener untuk tombol hapus semua
+        document.getElementById('clear-all-markers').addEventListener('click', function() {
+            if (markers.length === 0) {
+                showNotification('Tidak ada penanda untuk dihapus', true);
+                return;
+            }
+            
+            if (confirm('Apakah Anda yakin ingin menghapus SEMUA penanda?')) {
+                markers.forEach(marker => {
+                    if (marker.mapMarker) {
+                        map.removeLayer(marker.mapMarker);
+                    }
+                });
+                
+                markers = [];
+                saveMarkers();
+                renderMarkerList();
+                showNotification('Semua penanda berhasil dihapus!');
+            }
+        });
+        
+        // Event listener untuk pencarian alamat
+        document.getElementById('address-search').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                const query = this.value.trim();
+                if (query) {
+                    searchAddress(query);
+                }
+            }
+        });
+        
+        // Fungsi untuk mencari alamat
+        function searchAddress(query) {
+            const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`;
+            
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.length > 0) {
+                        const result = data[0];
+                        const lat = parseFloat(result.lat);
+                        const lon = parseFloat(result.lon);
+                        
+                        // Hapus marker sementara sebelumnya
+                        if (temporaryMarker) {
+                            map.removeLayer(temporaryMarker);
+                        }
+                        
+                        // Tambahkan marker sementara
+                        temporaryMarker = L.marker([lat, lon], {
+                            icon: L.divIcon({
+                                className: 'temporary-marker',
+                                html: '<div style="background-color: #ff00ff; width: 24px; height: 24px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 8px rgba(0,0,0,0.7);"></div>',
+                                iconSize: [24, 24],
+                                iconAnchor: [12, 12]
+                            }),
+                            draggable: true,
+                            zIndexOffset: 1000
+                        }).addTo(map);
+                        
+                        // Set lokasi yang dipilih
+                        selectedLocation = temporaryMarker.getLatLng();
+                        updateLocationInfo(selectedLocation);
+                        
+                        // Zoom ke lokasi
+                        map.setView([lat, lon], 17);
+                        
+                        // Event saat marker digeser
+                        temporaryMarker.on('dragend', function(event) {
+                            const marker = event.target;
+                            const position = marker.getLatLng();
+                            selectedLocation = position;
+                            updateLocationInfo(position);
+                        });
+                        
+                        showNotification('Lokasi ditemukan! Silakan sesuaikan jika perlu.');
+                    } else {
+                        showNotification('Alamat tidak ditemukan', true);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error searching address:', error);
+                    showNotification('Terjadi kesalahan saat mencari alamat', true);
+                });
+        }
+        
+        // Event listener untuk tombol layar penuh
+        document.getElementById('fullscreen-toggle').addEventListener('click', function() {
+            const container = document.querySelector('.container');
+            const isFullscreen = container.classList.toggle('fullscreen-mode');
+            
+            this.innerHTML = isFullscreen 
+                ? '<i class="fas fa-compress"></i> Kembali' 
+                : '<i class="fas fa-expand"></i> Layar Penuh';
+            
+            // Perbarui ukuran peta setelah mode berubah
+            setTimeout(() => {
+                map.invalidateSize();
+            }, 300);
+        });
+        
+        // Event listener untuk tombol info
+        document.getElementById('info-toggle').addEventListener('click', function() {
+            const areaInfo = document.getElementById('area-info');
+            areaInfo.style.display = areaInfo.style.display === 'block' ? 'none' : 'block';
+        });
+        
+        // Event listener untuk tombol zoom
+        document.getElementById('zoom-in').addEventListener('click', function() {
+            map.zoomIn();
+        });
+        
+        document.getElementById('zoom-out').addEventListener('click', function() {
+            map.zoomOut();
+        });
+        
+        // Fungsi untuk export data ke file Excel
+        function exportData() {
+            if (markers.length === 0) {
+                showNotification('Tidak ada data untuk diexport', true);
+                return;
+            }
+            
+            try {
+                // Buat salinan tanpa properti mapMarker
+                const dataToExport = markers.map(marker => {
+                    const { mapMarker, ...rest } = marker;
+                    return rest;
+                });
+                
+                // Siapkan worksheet
+                const ws = XLSX.utils.json_to_sheet(dataToExport);
+                
+                // Siapkan workbook
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Pelanggan");
+                
+                // Generate file Excel
+                const now = new Date();
+                const dateStr = `${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}`;
+                const timeStr = `${now.getHours().toString().padStart(2, '0')}${now.getMinutes().toString().padStart(2, '0')}`;
+                const fileName = `pelanggan-tigaraksa-hub2-${dateStr}_${timeStr}.xlsx`;
+                
+                XLSX.writeFile(wb, fileName);
+                showNotification(`${markers.length} data berhasil diexport ke Excel!`);
+            } catch (e) {
+                console.error('Export error:', e);
+                showNotification('Gagal mengexport data ke Excel', true);
+            }
+        }
+        
+        // Fungsi untuk import data dari file Excel
+        function importData(file) {
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    
+                    // Ambil sheet pertama
+                    const sheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[sheetName];
+                    
+                    // Konversi ke JSON
+                    const importedData = XLSX.utils.sheet_to_json(worksheet);
+                    
+                    // Validasi data
+                    if (!Array.isArray(importedData)) {
+                        throw new Error('Format data tidak valid');
+                    }
+                    
+                    // Hapus semua marker yang ada
+                    markers.forEach(marker => {
+                        if (marker.mapMarker) {
+                            map.removeLayer(marker.mapMarker);
+                        }
+                    });
+                    
+                    // Reset array markers
+                    markers = [];
+                    
+                    // Tambahkan semua marker baru
+                    importedData.forEach(markerData => {
+                        // Pastikan minimal ada properti name, lat, lng
+                        if (markerData.name && markerData.lat && markerData.lng) {
+                            markers.push({
+                                id: markerData.id || Date.now(),
+                                name: markerData.name,
+                                address: markerData.address || '',
+                                type: markerData.type || 'home',
+                                note: markerData.note || '',
+                                lat: markerData.lat,
+                                lng: markerData.lng,
+                                date: markerData.date || new Date().toLocaleString()
+                            });
+                        }
+                    });
+                    
+                    // Simpan ke localStorage
+                    saveMarkers();
+                    
+                    // Perbarui tampilan
+                    placeMarkersOnMap();
+                    renderMarkerList();
+                    
+                    showNotification(`${markers.length} data berhasil diimport dari Excel!`);
+                    
+                    // Tutup modal
+                    closeModal();
+                } catch (error) {
+                    console.error('Import error:', error);
+                    showNotification(`Error: ${error.message}`, true);
+                }
+            };
+            
+            reader.onerror = function() {
+                showNotification('Gagal membaca file', true);
+            };
+            
+            reader.readAsArrayBuffer(file);
+        }
+        
+        // Fungsi untuk menampilkan modal import
+        function showImportModal() {
+            const modal = document.getElementById('data-modal');
+            const modalTitle = document.getElementById('modal-title');
+            const modalBody = document.querySelector('.modal-body');
+            const actionBtn = document.getElementById('action-btn');
+            
+            modalTitle.textContent = 'Import Data';
+            actionBtn.textContent = 'Import Data';
+            actionBtn.disabled = true;
+            
+            modalBody.innerHTML = `
+                <div class="file-input-container">
+                    <label for="import-file-input" class="file-input-label" id="file-input-label">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <span>Pilih File Excel (.xlsx)</span>
+                        <p class="file-name" id="file-name">Belum ada file dipilih</p>
+                    </label>
+                    <input type="file" id="import-file-input" class="file-input" accept=".xlsx, .xls">
+                </div>
+                <div class="instructions">
+                    <h3><i class="fas fa-exclamation-triangle"></i> Perhatian:</h3>
+                    <ul>
+                        <li>Data saat ini akan <strong>digantikan</strong> dengan data import</li>
+                        <li>Pastikan file berasal dari export aplikasi ini</li>
+                        <li>Format file harus Excel (.xlsx atau .xls)</li>
+                        <li>Kolom yang diperlukan: name, lat, lng</li>
+                    </ul>
+                </div>
+            `;
+            
+            // Event listeners untuk file input
+            const fileInput = document.getElementById('import-file-input');
+            const fileName = document.getElementById('file-name');
+            const fileInputLabel = document.getElementById('file-input-label');
+            
+            fileInput.addEventListener('change', function(e) {
+                if (this.files && this.files.length > 0) {
+                    const file = this.files[0];
+                    fileName.textContent = file.name;
+                    actionBtn.disabled = false;
+                    
+                    // Tambahkan animasi feedback
+                    fileInputLabel.style.borderColor = '#4CAF50';
+                    fileInputLabel.style.backgroundColor = '#e8f5e9';
+                    setTimeout(() => {
+                        fileInputLabel.style.borderColor = '#ff5500';
+                        fileInputLabel.style.backgroundColor = '#f8f9fa';
+                    }, 1000);
+                }
+            });
+            
+            // Tampilkan modal
+            modal.style.display = 'flex';
+        }
+        
+        // Fungsi untuk menampilkan modal export
+        function showExportModal() {
+            const modal = document.getElementById('data-modal');
+            const modalTitle = document.getElementById('modal-title');
+            const modalBody = document.querySelector('.modal-body');
+            const actionBtn = document.getElementById('action-btn');
+            
+            modalTitle.textContent = 'Export Data';
+            actionBtn.textContent = 'Export Sekarang';
+            
+            modalBody.innerHTML = `
+                <div style="text-align: center; margin: 15px 0;">
+                    <i class="fas fa-file-excel" style="font-size: 3rem; color: #217346;"></i>
+                    <p style="margin-top: 10px;">Export semua data pelanggan ke Excel</p>
+                </div>
+                
+                <div class="export-options">
+                    <div class="export-option">
+                        <i class="fas fa-file-excel"></i>
+                        <div class="export-info">
+                            <h3>Download File Excel</h3>
+                            <p>Simpan data ke perangkat Anda</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="instructions">
+                    <h3><i class="fas fa-info-circle"></i> Informasi:</h3>
+                    <ul>
+                        <li>File berisi semua ${markers.length} data pelanggan</li>
+                        <li>Data dapat diimport kembali ke aplikasi</li>
+                        <li>Simpan file di tempat aman</li>
+                        <li>Format: Microsoft Excel (.xlsx)</li>
+                    </ul>
+                </div>
+            `;
+            
+            // Tampilkan modal
+            modal.style.display = 'flex';
+        }
+        
+        // Fungsi untuk menutup modal
+        function closeModal() {
+            const modal = document.getElementById('data-modal');
+            modal.style.display = 'none';
+        }
+        
+        // Muat marker saat halaman dimuat
+        document.addEventListener('DOMContentLoaded', function() {
+            loadMarkers();
+            
+            // Tambahkan kontrol zoom
+            L.control.zoom({
+                position: 'bottomright'
+            }).addTo(map);
+            
+            // Deteksi perangkat mobile
+            if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+                // Penyesuaian untuk perangkat mobile
+                map.setView([-6.2537, 106.4764], 14);
+                
+                // Tampilkan petunjuk penggunaan untuk mobile
+                showNotification('Gunakan dua jari untuk zoom in/out pada peta');
+            }
+            
+            // Tambahkan event listener untuk tombol import/export
+            document.getElementById('export-btn').addEventListener('click', showExportModal);
+            document.getElementById('import-btn').addEventListener('click', showImportModal);
+            
+            // Event listener untuk tombol modal
+            document.querySelector('.close-modal').addEventListener('click', closeModal);
+            document.getElementById('cancel-btn').addEventListener('click', closeModal);
+            
+            document.getElementById('action-btn').addEventListener('click', function() {
+                const modalTitle = document.getElementById('modal-title').textContent;
+                
+                if (modalTitle === 'Export Data') {
+                    exportData();
+                    closeModal();
+                } 
+                else if (modalTitle === 'Import Data') {
+                    const fileInput = document.getElementById('import-file-input');
+                    if (fileInput.files.length > 0) {
+                        importData(fileInput.files[0]);
+                    } else {
+                        showNotification('Pilih file terlebih dahulu', true);
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
